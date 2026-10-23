@@ -18,7 +18,7 @@ test('host upgrade preserves identity, verifier, salt and fixed IP', () => {
 });
 test('rollback keeps current password verifier and refuses another terminal backup',()=>{
   const id='1234567890abcdef';
-  const old=template.replace('__INSTANCE_ID__',id).replace('__AUTH_SALT__','a'.repeat(32)).replace('__AUTH_VERIFIER__','b'.repeat(64)).replace('Harbor Terminal 1.1.0','Harbor Terminal 1.0.2');
+  const old=template.replace('__INSTANCE_ID__',id).replace('__AUTH_SALT__','a'.repeat(32)).replace('__AUTH_VERIFIER__','b'.repeat(64)).replace(/Harbor Terminal \d+\.\d+\.\d+/,'Harbor Terminal 1.0.2');
   const current=old.replace('b'.repeat(64),'c'.repeat(64));
   const result=restoreSource(old,current,id);
   assert.ok(result.includes('Harbor Terminal 1.0.2'));

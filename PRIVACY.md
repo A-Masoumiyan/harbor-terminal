@@ -1,4 +1,4 @@
-# Privacy and permissions — Harbor Terminal 1.1
+# Privacy and permissions — Harbor Terminal 1.2
 
 Harbor Terminal has no analytics or telemetry and runs no remote JavaScript.
 
@@ -8,9 +8,9 @@ Connection names, colors, terminal URLs, installation identifiers, filenames, di
 
 Terminal passwords, PHP source, password verifiers and cPanel session URLs are not saved in persistent extension storage. Passwords generated during installation are shown in the settings page until the page is closed or the field is cleared.
 
-When the user clicks the toolbar while on a cPanel File Manager tab, the activeTab permission allows reading that tab URL. It is transferred through browser.storage.session, consumed by the settings page and removed. This temporary state is not synchronized or written to local connection storage. Opening settings and entering the URL manually is also supported. cPanel cookie values are never read or exported; same-origin requests use the existing tab session.
+When the user chooses the cPanel setup button in the toolbar popup while on a cPanel File Manager tab, the activeTab permission allows reading that tab URL. It is transferred through browser.storage.session, consumed by the settings page and removed. This temporary state is not synchronized or written to local connection storage. Opening settings and entering the URL manually is also supported. cPanel cookie values are never read or exported; same-origin requests use the existing tab session.
 
-Optional host access is requested separately for the cPanel hostname, selected terminal website and api.github.com. Host permission matching includes HTTPS ports on the approved hostname. scripting is used only for cPanel API calls in the matching authenticated tab; contextMenus adds settings; storage manages connections; activeTab supports the explicit toolbar action.
+Optional host access is requested separately for the cPanel hostname, selected terminal website and api.github.com. Host permission matching includes HTTPS ports on the approved hostname. scripting is used for cPanel API calls in the matching authenticated tab and to add a settings navigation button to the exact saved terminal document after it loads. That button can only open extension settings: messages require the extension sender ID, top frame and a saved terminal URL; no website content or credentials are read. contextMenus adds settings; storage manages connections; activeTab supports the explicit toolbar action.
 
 ## Terminal website
 
@@ -28,6 +28,6 @@ An explicit host-upgrade action reads only the validated saved terminal file thr
 
 Diagnostics exports contain connection hostname, check time, extension/terminal/PHP versions and feature flags. They contain no password, cPanel token, PHP source or verifier. Users choose whether to export that local report.
 
-Checking for updates sends only an ordinary HTTPS request to the public GitHub release API; GitHub sees standard connection metadata such as IP. Hosting credentials, file contents, commands and cPanel session URLs are never sent to GitHub. Downloading an extension package does not silently install it.
+The most recently checked public release version, approved package URL and check time are stored locally. Checking for updates sends only an ordinary HTTPS request to the public GitHub release API; GitHub sees standard connection metadata such as IP. Hosting credentials, file contents, commands and cPanel session URLs are never sent to GitHub. Downloading an extension package does not silently install it.
 
 Removing a connection or uninstalling the extension does not remove the hosting PHP file. Remove that file through File Manager to remove server access. Private server metadata is in an installation-specific temporary folder; web file removal does not promise immediate deletion of that folder.
