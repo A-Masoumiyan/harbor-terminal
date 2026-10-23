@@ -8,7 +8,7 @@ import {cpanelRequest} from '../extension/cpanel.js';
 
 test('cPanel session URL and absolute destination parsing', () => {
   const value = parseCpanel('https://panel.example:2083/cpsess123/frontend/jupiter/filemanager/upload-ajax.html?dir=%2Fhome%2Ftest%2Fpublic_html');
-  assert.deepEqual(value, {origin: 'https://panel.example:2083', session: '/cpsess123', directory: '/home/test/public_html'});
+  assert.deepEqual(value, {origin: 'https://panel.example:2083', session: '/cpsess123', pagePath: '/cpsess123/frontend/jupiter/filemanager/upload-ajax.html', directory: '/home/test/public_html'});
   assert.equal(permissionPattern(value.origin), 'https://panel.example/*');
   assert.throws(() => parseCpanel('http://panel.example/cpsess1/frontend/jupiter/filemanager/index.html'));
   assert.throws(() => parseCpanel('https://user:secret@panel.example/cpsess1/frontend/jupiter/filemanager/index.html'));

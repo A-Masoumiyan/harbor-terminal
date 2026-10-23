@@ -1,4 +1,4 @@
-import {cpanelRequest} from './cpanel.js';
+import {requestCpanel, withTimeout} from './transport.js';
 import {parseCpanel, permissionPattern, domainChoices, terminalURL, normalizePath,
   randomHex, generatePassword, renderTerminal, newerVersion, REPOSITORY, RELEASES, httpsURL} from './core.js';
 const api = globalThis.browser ?? globalThis.chrome;
@@ -16,20 +16,15 @@ async function task(work) {
   finally { busy = false; actionButtons.forEach(id => $(id).disabled = false); ['upload-url', 'directory', 'domain', 'owner'].forEach(id => $(id).disabled = false); $('rotate-form').querySelector('button').disabled = false; }
 }
 async function grant(url) {
-  if (!await api.permissions.request({origins: [permissionPattern(url)]})) throw new Error('اجازهٔ دسترسی به این دامنه داده نشد.');
+  status('در انتظار اجازهٔ دسترسی مرورگر؛ اگر پنجرهٔ اجازه باز است، آن را بررسی کنید.');
+  const granted = await withTimeout(api.permissions.request({origins: [permissionPattern(url)]}), 30000,
+    'پاسخ پنجرهٔ اجازهٔ دسترسی دریافت نشد. درخواست دسترسی Edge را بررسی و سپس دوباره تلاش کنید.');
+  if (!granted) throw new Error('اجازهٔ دسترسی به این دامنه داده نشد.');
 }
 // Executed only in an explicitly selected, already authenticated cPanel tab.
 
 async function callCpanel(config, operation, params = {}, upload = null) {
-  const tabs = await api.tabs.query({url: permissionPattern(config.origin)});
-  const tab = tabs.find(t => {
-    try { const u = new URL(t.url); return u.origin === config.origin && u.pathname.startsWith(config.session + '/'); } catch { return false; }
-  });
-  if (!tab) throw new Error('تب واردشدهٔ cPanel پیدا نشد. صفحهٔ Upload را در همین مرورگر باز نگه دارید.');
-  const results = await api.scripting.executeScript({target: {tabId: tab.id}, func: cpanelRequest, args: [config, operation, params, upload]});
-  const result = results[0]?.result;
-  if (!result || result.error) throw new Error(result?.error || 'ارتباط با تب cPanel انجام نشد.');
-  return result.data;
+  return requestCpanel(api, config, operation, params, upload);
 }
 async function displayProfile() {
   const {profile} = await api.storage.local.get('profile');

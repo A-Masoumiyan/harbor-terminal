@@ -1,4 +1,6 @@
 export async function cpanelRequest(expected, operation, params, upload) {
+  const deadline = expected.deadline ?? Date.now() + 60000;
+  if (Date.now() >= deadline) return {error: 'مهلت این درخواست گذشته است؛ عملیات انجام نشد.'};
   if (location.origin !== expected.origin || !location.pathname.startsWith(expected.session + '/')) {
     return {error: 'نشست تب عوض شده است؛ نشانی تازهٔ Upload را وارد کنید.'};
   }
@@ -6,12 +8,13 @@ export async function cpanelRequest(expected, operation, params, upload) {
   try {
     let response;
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 60000);
+    const timer = setTimeout(() => controller.abort(), Math.max(1, Math.min(60000, deadline - Date.now())));
     try {
       if (upload) {
         const body = new FormData();
         body.set('dir', params.dir); body.set('overwrite', '0');
         body.set('file-1', new Blob([upload.source], {type: 'application/x-httpd-php'}), upload.filename);
+        if (Date.now() >= deadline) return {error: 'مهلت آپلود گذشته است؛ فایل ارسال نشد.'};
         response = await fetch(endpoint, {method: 'POST', credentials: 'same-origin', body, signal: controller.signal, redirect: 'error'});
       } else {
         response = await fetch(endpoint + '?' + new URLSearchParams(params), {credentials: 'same-origin', signal: controller.signal, redirect: 'error'});

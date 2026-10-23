@@ -24,7 +24,7 @@ export function parseCpanel(value) {
   const match = url.pathname.match(/^\/(cpsess\d+)\/frontend\//);
   if (!match || !/\/filemanager\//.test(url.pathname)) throw new Error('نشانی صفحهٔ File Manager یا Upload در نشست واردشدهٔ cPanel را وارد کنید.');
   const dir = url.searchParams.get('dir');
-  return {origin: url.origin, session: '/' + match[1], directory: dir ? normalizePath(dir) : ''};
+  return {origin: url.origin, session: '/' + match[1], pagePath: url.pathname, directory: dir ? normalizePath(dir) : ''};
 }
 export function domainChoices(data, directory) {
   const dir = normalizePath(directory);

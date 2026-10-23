@@ -6,9 +6,9 @@
 
 بسته‌ها در [GitHub Releases](https://github.com/A-Masoumiyan/harbor-terminal/releases) منتشر می‌شوند.
 
-- **Chrome:** فایل `harbor-terminal-chrome-edge-1.0.0.zip` را استخراج کنید. در `chrome://extensions` حالت Developer mode را روشن کنید، Load unpacked را بزنید و پوشه‌ای که `manifest.json` در آن است انتخاب کنید.
+- **Chrome:** فایل `harbor-terminal-chrome-edge-1.0.1.zip` را استخراج کنید. در `chrome://extensions` حالت Developer mode را روشن کنید، Load unpacked را بزنید و پوشه‌ای که `manifest.json` در آن است انتخاب کنید.
 - **Edge:** همان بسته را استخراج کنید. در `edge://extensions` حالت Developer mode، سپس Load unpacked را انتخاب کنید.
-- **Firefox:** بستهٔ `harbor-terminal-firefox-1.0.0.zip` فعلاً **امضانشده و مخصوص آزمون** است. آن را استخراج کنید؛ در `about:debugging#/runtime/this-firefox` گزینهٔ Load Temporary Add-on و سپس `manifest.json` را انتخاب کنید. این نصب پس از بستن Firefox از بین می‌رود. نصب دائمی به امضای Mozilla نیاز دارد؛ بستهٔ امضاشده هنوز منتشر نشده است.
+- **Firefox:** بستهٔ `harbor-terminal-firefox-1.0.1.zip` فعلاً **امضانشده و مخصوص آزمون** است. آن را استخراج کنید؛ در `about:debugging#/runtime/this-firefox` گزینهٔ Load Temporary Add-on و سپس `manifest.json` را انتخاب کنید. این نصب پس از بستن Firefox از بین می‌رود. نصب دائمی به امضای Mozilla نیاز دارد؛ بستهٔ امضاشده هنوز منتشر نشده است.
 
 حداقل مرورگر: Chrome/Edge 120؛ Firefox 140. روی ویندوز نیازی به برنامهٔ جانبی نیست. هاست باید لینوکس، PHP 8.1+، HTTPS معتبر، سشن فعال، و اجازهٔ `proc_open` و توابع وابسته داشته باشد.
 
@@ -52,7 +52,9 @@ python tools/build.py
 
 بسته‌های خروجی در `dist/` قرار می‌گیرند. فایل‌های نمونهٔ آزمون بیرون از بسته ساخته می‌شوند و هیچ رمز ثابتی در سورس وجود ندارد. فایل `terminal.template.php` به‌تنهایی قابل ورود نیست؛ هنگام نصب، salt و verifier تصادفی جای‌گذاری می‌شوند.
 
-برای انتشار، نسخه را در `package.json`، هر دو manifest و برچسب نسخهٔ قالب PHP یکسان بالا ببرید، آزمون‌ها را اجرا و یک tag با شکل `v1.0.1` push کنید. workflow انتشار، ZIPها و `SHA256SUMS.txt` را در GitHub Releases می‌گذارد. خروجی Firefox همچنان امضانشده است مگر فرایند امضای AMO را جدا انجام دهید.
+در نسخهٔ ۱٫۰٫۱، ارتباط با تب cPanel سقف انتظار مستقل دارد؛ صفحهٔ Upload در اولویت است و اجرای درخواست منتظر document_idle نمی‌ماند. تشخیص دامنه پس از حدود ۲۰ ثانیه بدون پاسخ، با پیام مشخص متوقف می‌شود. آپلودهای منقضی‌شده پس از معطل‌ماندن اجرای تب شروع نمی‌شوند.
+
+برای انتشار، نسخه را در `package.json`، هر دو manifest و برچسب نسخهٔ قالب PHP یکسان بالا ببرید، آزمون‌ها را اجرا و یک tag با شکل `v1.0.2` push کنید. workflow انتشار، ZIPها و `SHA256SUMS.txt` را در GitHub Releases می‌گذارد. خروجی Firefox همچنان امضانشده است مگر فرایند امضای AMO را جدا انجام دهید.
 
 ## محدودیت‌ها و حریم خصوصی
 

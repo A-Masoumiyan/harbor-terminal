@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-// Harbor Terminal 1.0.0 | PHP 8.1+ | Deploy only on your own hosting account.
+// Harbor Terminal 1.0.1 | PHP 8.1+ | Deploy only on your own hosting account.
 const INSTANCE_ID = '__INSTANCE_ID__';
 // HARBOR_AUTH_BEGIN
 const AUTH_SALT = '__AUTH_SALT__';
@@ -50,7 +50,7 @@ function commandsAvailable(): bool {
 // A public identity probe contains no password, hash, account path or session information.
 $api = isset($_GET['api']) && is_string($_GET['api']) ? $_GET['api'] : '';
 if ($api === 'info' && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    jsonReply(200, ['product' => 'harbor-terminal', 'id' => INSTANCE_ID, 'version' => '1.0.0', 'commands' => commandsAvailable()]);
+    jsonReply(200, ['product' => 'harbor-terminal', 'id' => INSTANCE_ID, 'version' => '1.0.1', 'commands' => commandsAvailable()]);
 }
 // Credentials are sent only in the HTTPS POST body, never in a URL or a cookie.
 if ($api === 'rotate') {

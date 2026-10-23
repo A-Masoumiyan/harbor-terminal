@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Harbor Terminal",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Install and open a password-protected PHP command console on your own cPanel hosting account.",
   "permissions": ["storage", "scripting", "contextMenus"],
   "optional_host_permissions": ["https://*/*"],
