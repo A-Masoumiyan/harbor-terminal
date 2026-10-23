@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {pbkdf2Sync} from 'node:crypto';
 import {parseCpanel, normalizePath, permissionPattern, domainChoices, terminalURL,
-  generatePassword, renderTerminal, verifier, newerVersion, PBKDF_ITERATIONS} from '../extension/core.js';
+  generatePassword, renderTerminal, verifier, newerVersion, PBKDF_ITERATIONS, passwordLengthError} from '../extension/core.js';
 import {cpanelRequest} from '../extension/cpanel.js';
 
 test('cPanel session URL and absolute destination parsing', () => {
@@ -51,6 +51,16 @@ test('release comparison handles multi-digit versions and rejects prereleases', 
   assert.equal(newerVersion('1.0.0', '1.0.0'), false);
   assert.equal(newerVersion('1.0.1-beta', '1.0.0'), false);
   assert.equal(newerVersion('0.9.9', '1.0.0'), false);
+});
+test('custom passwords accept four Latin or Persian code points and reject three', () => {
+  assert.equal(passwordLengthError('t4st'), null);
+  assert.equal(passwordLengthError('رمزن'), null);
+  assert.equal(passwordLengthError('🔑🔑🔑🔑'), null);
+  assert.ok(passwordLengthError('abc'));
+  assert.ok(passwordLengthError('رمز'));
+  assert.equal(passwordLengthError('a'.repeat(256)), null);
+  assert.ok(passwordLengthError('a'.repeat(257)));
+  assert.ok(passwordLengthError('ن'.repeat(129)));
 });
 test('cPanel calls use matching origin, session and authenticated API; upload failures propagate', async () => {
   globalThis.location = {origin: 'https://panel.example:2083', pathname: '/cpsess123/frontend/jupiter/filemanager/index.html'};

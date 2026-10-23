@@ -12,7 +12,7 @@ export async function cpanelRequest(expected, operation, params, upload) {
     try {
       if (upload) {
         const body = new FormData();
-        body.set('dir', params.dir); body.set('overwrite', '0');
+        body.set('dir', params.dir); body.set('overwrite', params.overwrite === '1' ? '1' : '0');
         body.set('file-1', new Blob([upload.source], {type: 'application/x-httpd-php'}), upload.filename);
         if (Date.now() >= deadline) return {error: 'مهلت آپلود گذشته است؛ فایل ارسال نشد.'};
         response = await fetch(endpoint, {method: 'POST', credentials: 'same-origin', body, signal: controller.signal, redirect: 'error'});
@@ -27,7 +27,7 @@ export async function cpanelRequest(expected, operation, params, upload) {
       if (upload) {
         const files = result.data?.uploads;
         if (Array.isArray(files) && files.some(file => file.status !== undefined && Number(file.status) !== 1)) throw new Error('File upload failed');
-        if (Array.isArray(result.data?.failed) && result.data.failed.length) throw new Error('File upload failed');
+        if ((Array.isArray(result.data?.failed) && result.data.failed.length) || Number(result.data?.failed) > 0) throw new Error('File upload failed');
       }
       return {data: upload ? true : result.data};
     } finally { clearTimeout(timer); }

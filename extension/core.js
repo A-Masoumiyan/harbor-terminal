@@ -58,6 +58,11 @@ export function randomHex(bytes = 16) {
 export function generatePassword() {
   return btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(24)))).replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
 }
+export function passwordLengthError(password) {
+  if (Array.from(password).length < 4) return 'رمز جدید باید حداقل ۴ کاراکتر داشته باشد.';
+  if (new TextEncoder().encode(password).length > 256) return 'رمز جدید نباید بیشتر از ۲۵۶ بایت باشد.';
+  return null;
+}
 export async function verifier(password, salt) {
   const encoder = new TextEncoder();
   const key = await crypto.subtle.importKey('raw', encoder.encode(password), 'PBKDF2', false, ['deriveBits']);

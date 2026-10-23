@@ -1,10 +1,11 @@
 import {requestCpanel, withTimeout} from './transport.js';
+import {upgradeSource} from './upgrade.js';
 import {parseCpanel, permissionPattern, domainChoices, terminalURL, normalizePath,
-  randomHex, generatePassword, renderTerminal, newerVersion, REPOSITORY, RELEASES, httpsURL} from './core.js';
+  randomHex, generatePassword, renderTerminal, newerVersion, REPOSITORY, RELEASES, httpsURL, passwordLengthError} from './core.js';
 const api = globalThis.browser ?? globalThis.chrome;
 const $ = id => document.getElementById(id);
-let inspected = null, choices = [], busy = false, currentProfile = null;
-const actionButtons = ['inspect', 'install', 'verify', 'forget', 'check-update'];
+let inspected = null, choices = [], busy = false, currentProfile = null, preparedUpgrade = null, backupURL = null;
+const actionButtons = ['inspect', 'install', 'verify', 'forget', 'check-update', 'prepare-upgrade', 'apply-upgrade'];
 function status(message, error = false) { $('status').textContent = message; $('status').classList.toggle('error', error); }
 async function task(work) {
   if (busy) return;
@@ -29,20 +30,25 @@ async function callCpanel(config, operation, params = {}, upload = null) {
 async function displayProfile() {
   const {profile} = await api.storage.local.get('profile');
   currentProfile = profile ?? null;
+  $('prepare-upgrade').hidden = !profile;
   $('saved').hidden = $('rotation').hidden = !profile;
   if (profile) {
     $('saved-url').textContent = profile.url;
     $('verification').textContent = profile.verified ? 'هویت فایل نصب‌شده بررسی شده است.' : 'آپلود ثبت شده؛ بررسی دسترسی HTTPS هنوز انجام نشده است.';
   }
 }
-function invalidate() { inspected = null; choices = []; $('destination').hidden = true; }
+function clearUpgrade() {
+  preparedUpgrade = null; $('upgrade-review').hidden = true; $('upgrade-consent').checked = false;
+  if (backupURL) URL.revokeObjectURL(backupURL); backupURL = null; $('backup-link').removeAttribute('href');
+}
+function invalidate() { inspected = null; choices = []; $('destination').hidden = true; clearUpgrade(); }
 $('upload-url').addEventListener('input', invalidate);
 $('directory').addEventListener('input', invalidate);
 function preview() {
   const selected = choices[Number($('domain').value)];
   $('preview').textContent = selected ? `https://${selected.domain}/${selected.relative ? selected.relative + '/' : ''}harbor-terminal-<شناسه>.php` : '';
 }
-$('domain').addEventListener('change', preview);
+$('domain').addEventListener('change', () => { clearUpgrade(); preview(); });
 $('inspect').addEventListener('click', () => task(async () => {
   const config = parseCpanel($('upload-url').value.trim());
   await grant(config.origin); // Request permission directly from this user gesture.
@@ -77,6 +83,38 @@ $('install').addEventListener('click', () => task(async () => {
   $('upload-url').value = ''; invalidate();
   await displayProfile(); status('آپلود انجام شد. اکنون «بررسی نصب» را بزنید.');
 }));
+$('prepare-upgrade').addEventListener('click', () => task(async () => {
+  const profile = currentProfile, choice = choices[Number($('domain').value)];
+  if (!profile || !inspected || !choice || !$('owner').checked) throw new Error('ابتدا مقصد را تشخیص بدهید و مالکیت هاست را تأیید کنید.');
+  if (profile.filename !== `harbor-terminal-${profile.id}.php` || normalizePath(profile.directory) !== inspected.directory || terminalURL(choice, profile.filename) !== profile.url) {
+    throw new Error('پوشه و دامنهٔ انتخاب‌شده با ترمینال فعلی یکی نیستند. همان پوشهٔ نصب قبلی را انتخاب کنید.');
+  }
+  await grant(profile.url); clearUpgrade();
+  status('در حال خواندن فایل فعلی برای حفظ اطلاعات ورود…');
+  const old = await callCpanel(inspected, 'Fileman/get_file_content', {dir: profile.directory, file: profile.filename, from_charset: 'utf-8', to_charset: 'utf-8'});
+  if (typeof old?.content !== 'string') throw new Error('محتوای فایل قبلی از cPanel دریافت نشد؛ فایلی تغییر نکرد.');
+  const template = await (await fetch(api.runtime.getURL('terminal.template.php'))).text();
+  const source = upgradeSource(template, old.content, profile.id);
+  preparedUpgrade = {profile: {...profile}, config: {...inspected}, source, template};
+  backupURL = URL.createObjectURL(new Blob([old.content], {type: 'text/plain;charset=utf-8'}));
+  $('backup-link').href = backupURL; $('backup-link').download = profile.filename + '.backup.txt';
+  $('upgrade-review').hidden = false;
+  status('ارتقا آماده است. پشتیبان فایل قبلی را دریافت کنید و سپس ارتقای همان فایل را تأیید کنید.');
+}));
+$('apply-upgrade').addEventListener('click', () => task(async () => {
+  if (!preparedUpgrade || !$('upgrade-consent').checked) throw new Error('ابتدا پشتیبان را نگه دارید و ارتقای فایل فعلی را تأیید کنید.');
+  const prepared = preparedUpgrade;
+  status('در حال ارتقای ترمینال فعلی؛ آدرس و رمز حفظ می‌شوند…');
+  const latest = await callCpanel(prepared.config, 'Fileman/get_file_content', {dir: prepared.profile.directory, file: prepared.profile.filename, from_charset: 'utf-8', to_charset: 'utf-8'});
+  // Preserve a password rotated after the review step as well.
+  const source = upgradeSource(prepared.template, latest?.content, prepared.profile.id);
+  // No retry: a lost response can mean that the upload already succeeded.
+  preparedUpgrade = null;
+  await callCpanel(prepared.config, 'Fileman/upload_files', {dir: prepared.profile.directory, overwrite: '1'}, {filename: prepared.profile.filename, source});
+  const data = await info(prepared.profile);
+  if (data.version !== api.runtime.getManifest().version) throw new Error('آپلود انجام شد اما نسخهٔ جدید هنوز از وب‌سرور پاسخ نمی‌دهد؛ کش PHP هاست را بررسی کنید.');
+  await displayProfile(); clearUpgrade(); status('ترمینال فعلی ارتقا پیدا کرد. صفحهٔ ترمینال را تازه‌سازی کنید؛ رمز فعلی حفظ شده و اکنون می‌توانید رمز ۴ کاراکتری بگذارید.');
+}));
 async function info(profile) {
   const url = httpsURL(profile.url); url.searchParams.set('api', 'info');
   const response = await fetch(url.href, {cache: 'no-store', credentials: 'omit', redirect: 'error', signal: AbortSignal.timeout(15000)});
@@ -95,6 +133,7 @@ $('open').addEventListener('click', async () => {
   const {profile} = await api.storage.local.get('profile'); if (profile) await api.tabs.create({url: httpsURL(profile.url).href});
 });
 $('forget').addEventListener('click', () => task(async () => {
+  clearUpgrade();
   await api.storage.local.remove(['profile', 'pending']); await displayProfile();
   $('generated-password').value = ''; $('generated').hidden = true;
   status('اتصال از افزونه حذف شد. برای حذف دسترسی، فایل PHP را هم از File Manager پاک کنید.');
@@ -106,7 +145,8 @@ $('rotate-form').addEventListener('submit', event => {
     const profile = currentProfile; if (!profile) return;
     const oldPassword = $('old-password').value, newPassword = $('new-password').value;
     if (newPassword !== $('confirm-password').value) throw new Error('دو نسخهٔ رمز جدید برابر نیستند.');
-    if (Array.from(newPassword).length < 16 || new TextEncoder().encode(newPassword).length > 256) throw new Error('رمز جدید باید حداقل ۱۶ نویسه و حداکثر ۲۵۶ بایت باشد.');
+    const lengthError = passwordLengthError(newPassword);
+    if (lengthError) throw new Error(lengthError);
     await grant(profile.url);
     await info(profile); // Verify installation identity before transmitting credentials.
     const url = httpsURL(profile.url); url.searchParams.set('api', 'rotate');
@@ -132,6 +172,15 @@ $('check-update').addEventListener('click', () => task(async () => {
   const release = await response.json(), version = String(release.tag_name).replace(/^v/, '');
   $('update-status').textContent = newerVersion(version, api.runtime.getManifest().version) ? `نسخهٔ ${version} برای دریافت موجود است.` : 'نسخهٔ جدیدتری منتشر نشده است.';
   $('release-link').href = RELEASES; $('release-link').hidden = false;
+  const browserName = api.runtime.getURL('').startsWith('moz-extension:') ? 'firefox' : 'chrome-edge';
+  const asset = release.assets?.find(file => file.name === `harbor-terminal-${browserName}-${version}.zip`);
+  if (asset) {
+    const assetURL = httpsURL(asset.browser_download_url);
+    if (assetURL.origin === 'https://github.com' && assetURL.pathname.startsWith(`/${REPOSITORY}/releases/download/`)) {
+      $('package-link').href = assetURL.href; $('package-link').textContent = `دریافت نسخهٔ ${version} برای مرورگر من`;
+      $('package-link').hidden = false;
+    }
+  }
 }));
 $('version').textContent = api.runtime.getManifest().version;
 await displayProfile();

@@ -3,13 +3,14 @@
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Harbor Terminal — تنظیمات</title><link rel="stylesheet" href="options.css"></head>
 <body><main>
-<header><span class="mark" aria-hidden="true">⌘</span><div><p class="eyebrow" dir="ltr">HARBOR / TERMINAL</p><h1>یک راه کوتاه به هاستت.</h1><p>نصب و مدیریت کنسول PHP روی هاست شخصی با cPanel</p></div></header>
+<header><span class="mark" aria-hidden="true">›_</span><div><p class="eyebrow" dir="ltr">HARBOR / CONTROL CENTER</p><h1>کنسول هاستت، مرتب و در دسترس.</h1><p>اتصال، ارتقا و مدیریت ترمینال از یک جا</p></div></header>
+<nav class="quicknav" aria-label="بخش‌های تنظیمات"><a href="#setup">اتصال و نصب</a><a href="#rotation">رمز ورود</a><a href="#updates">به‌روزرسانی</a><span>فقط روی دستگاه شما</span></nav>
 <p id="status" role="status" aria-live="polite">آماده</p>
 <section id="saved" hidden><div class="section-title"><span>۰۱ / اتصال ذخیره‌شده</span><span class="tag">HTTPS</span></div>
 <h2>ترمینال آمادهٔ باز شدن است</h2><p id="saved-url" dir="ltr" class="address"></p><p id="verification"></p>
 <div class="actions"><button id="open">باز کردن ترمینال</button><button id="verify" class="secondary">بررسی نصب</button><button id="forget" class="quiet">حذف از افزونه</button></div>
 <p class="hint">کلیک روی آیکون افزونه همین صفحهٔ ترمینال را باز می‌کند. برای بازگشت به تنظیمات، روی آیکون راست‌کلیک کنید و Options / گزینه‌ها را بزنید. حذف از افزونه، فایل هاست را پاک نمی‌کند.</p></section>
-<section><div class="section-title">۰۲ / نصب روی هاست</div><h2>از File Manager شروع کن</h2>
+<section id="setup"><div class="section-title">۰۲ / نصب و ارتقای هاست</div><h2>از File Manager شروع کن</h2>
 <p>ابتدا وارد cPanel خودت شو و صفحهٔ Upload را باز نگه دار. سپس نشانی همان صفحه را اینجا وارد کن. افزونه از نشست همان تب استفاده می‌کند و رمز cPanel را دریافت نمی‌کند.</p>
 <label for="upload-url">نشانی صفحهٔ آپلود</label><input id="upload-url" type="url" dir="ltr" placeholder="https://host.example:2083/cpsess…/frontend/jupiter/filemanager/upload-ajax.html?dir=…" autocomplete="off">
 <label for="directory">مسیر مقصد روی هاست <small>از نشانی استخراج می‌شود؛ قابل ویرایش</small></label><input id="directory" dir="ltr" placeholder="/home/username/public_html" autocomplete="off">
@@ -17,16 +18,18 @@
 <div id="destination" hidden><label for="domain">دامنهٔ متصل به این پوشه</label><select id="domain" dir="ltr"></select>
 <p id="preview" dir="ltr" class="address"></p>
 <label class="check"><input id="owner" type="checkbox"> این هاست متعلق به من است و نصب کنسول اجرای فرمان را می‌خواهم.</label>
-<button id="install">ساخت رمز و نصب ترمینال</button></div>
+<div class="actions"><button id="install">ساخت رمز و نصب ترمینال جدید</button><button id="prepare-upgrade" class="secondary" hidden>آماده‌سازی ارتقای ترمینال فعلی</button></div></div>
+<div id="upgrade-review" class="upgradebox" hidden><h3>ارتقای همان ترمینال</h3><p>فایل قبلی خوانده شد. آدرس، رمز و محدودیت IP فعلی حفظ می‌شوند. ابتدا نسخهٔ پشتیبان را روی دستگاهت نگه دار؛ این فایل شامل هش رمز است و باید خصوصی بماند.</p><a id="backup-link" download>دریافت پشتیبان فایل قبلی</a><label class="check"><input type="checkbox" id="upgrade-consent"> پشتیبان را نگه داشته‌ام و می‌خواهم فایل ترمینال فعلی ارتقا پیدا کند.</label><button id="apply-upgrade">ارتقای فایل روی هاست</button></div>
 <div id="generated" hidden><label for="generated-password">رمز ساخته‌شده — همین حالا در مدیر رمز ذخیره کن</label><input id="generated-password" dir="ltr" readonly autocomplete="off"><p id="pending-note"></p><button id="clear-password" class="quiet">پنهان‌کردن و پاک‌کردن رمز از این صفحه</button></div>
 <p class="hint">رمز در حافظهٔ دائمی افزونه ذخیره نمی‌شود. هر نصب یک فایل PHP با شناسهٔ یکتا می‌سازد و فایل قبلی را بازنویسی نمی‌کند. در صورت نصب دوباره، فایل قبلی را خودت از File Manager حذف کن.</p></section>
 <section id="rotation" hidden><div class="section-title">۰۳ / رمز ورود</div><h2>رمز را روی خود هاست عوض کن</h2>
 <form id="rotate-form"><label for="old-password">رمز فعلی</label><input id="old-password" type="password" autocomplete="current-password" dir="ltr" required>
-<label for="new-password">رمز جدید <small>حداقل ۱۶ نویسه؛ حداکثر ۲۵۶ بایت</small></label><input id="new-password" type="password" autocomplete="new-password" dir="ltr" minlength="16" required>
-<label for="confirm-password">تکرار رمز جدید</label><input id="confirm-password" type="password" autocomplete="new-password" dir="ltr" minlength="16" required>
+<label for="new-password">رمز جدید <small>حداقل ۴ کاراکتر؛ حداکثر ۲۵۶ بایت</small></label><input id="new-password" type="password" autocomplete="new-password" dir="ltr" minlength="4" required>
+<label for="confirm-password">تکرار رمز جدید</label><input id="confirm-password" type="password" autocomplete="new-password" dir="ltr" minlength="4" required>
 <button type="submit">ثبت رمز جدید روی هاست</button></form><p class="hint">پس از تغییر موفق، تمام ورودهای قبلی به ترمینال باطل می‌شوند. اگر دسترسی نوشتن PHP بسته باشد، رمز قبلی حفظ می‌شود.</p></section>
-<section><div class="section-title">۰۴ / نسخه‌ها</div><h2>به‌روز بمان</h2><p>نسخهٔ نصب‌شده: <b id="version" dir="ltr"></b></p>
-<button id="check-update" class="secondary">بررسی نسخهٔ جدید</button><p id="update-status"></p><a id="release-link" target="_blank" rel="noopener noreferrer" hidden>دریافت از GitHub Releases ↗</a>
+<section id="updates"><div class="section-title">۰۴ / نسخه‌ها</div><h2>به‌روز بمان</h2><p>نسخهٔ نصب‌شده: <b id="version" dir="ltr"></b></p>
+<button id="check-update" class="secondary">بررسی نسخهٔ جدید</button><p id="update-status" role="status"></p><div class="actions"><a id="package-link" class="download-button" target="_blank" rel="noopener noreferrer" hidden>دریافت بستهٔ مرورگر من</a><a id="release-link" target="_blank" rel="noopener noreferrer" hidden>یادداشت‌های انتشار ↗</a></div>
+<p class="hint">پس از دریافت، فایل‌ها را در همان پوشهٔ نصب افزونه جایگزین و در صفحهٔ افزونه‌های مرورگر Reload را بزنید. برای ظاهر تازه و رمز کوتاه روی هاست، از بخش نصب و ارتقا، ترمینال فعلی را هم ارتقا دهید.</p>
 <p class="hint">بسته‌های دستی Chrome و Edge باید از صفحهٔ افزونه‌ها به‌روز شوند. نصب خودکار نسخه‌ها به انتشار در فروشگاه مرورگر نیاز دارد. Firefox برای نصب دائمی و به‌روزرسانی خودکار، بستهٔ امضاشدهٔ Mozilla می‌خواهد.</p></section>
 <footer>Harbor Terminal · فقط برای هاست خودت · بدون ارسال رمز به گیت‌هاب یا سرویس دیگر</footer>
 </main><script type="module" src="options.js"></script></body></html>

@@ -12,7 +12,7 @@ import time
 
 ROOT = Path(__file__).resolve().parents[1]
 PASSWORD = 'local-test-current-password-123456'
-NEW_PASSWORD = 'local-test-new-password-654321'
+NEW_PASSWORD = 't4st'
 
 def run():
     with tempfile.TemporaryDirectory(prefix='harbor-test-', dir=os.environ.get('HARBOR_TEST_TEMP')) as folder:
@@ -52,6 +52,7 @@ def run():
                 assert request('/insecure.php')[0] == 403
                 code, body, _ = request('/terminal.php?api=info')
                 assert code == 200 and json.loads(body)['id'] == '1234567890abcdef'
+                assert json.loads(body)['minimum_password_characters'] == 4
                 assert PASSWORD not in body and verifier not in body and folder not in body
                 assert request(data='action=run&command=whoami&csrf=invalid')[0] == 403
                 assert 'name="command"' not in login('wrong-password')[1]
@@ -68,13 +69,16 @@ def run():
                 def rotate(current, new):
                     return request(rotate_url, data=json.dumps({'id': '1234567890abcdef', 'current_password': current, 'new_password': new}), content_type='application/json')
                 assert rotate('wrong', NEW_PASSWORD)[0] == 403
-                assert rotate(PASSWORD, 'short')[0] == 400
+                assert rotate(PASSWORD, 'abc')[0] == 400
                 assert rotate(PASSWORD, PASSWORD)[0] == 400
                 assert rotate(PASSWORD, NEW_PASSWORD)[0] == 200
                 assert 'name="command"' not in request(cookie=cookie)[1], 'Old login must be revoked'
                 assert 'name="command"' not in login(PASSWORD)[1], 'Old password must fail'
                 assert 'name="command"' in login(NEW_PASSWORD)[1], 'New password must succeed'
                 assert NEW_PASSWORD not in (path / 'terminal.php').read_text(encoding='utf-8')
+                assert rotate(NEW_PASSWORD, 'رمزن')[0] == 200
+                assert 'name="command"' in login('رمزن')[1], 'Four Persian characters must work'
+                assert 'name="command"' not in login(NEW_PASSWORD)[1]
                 assert not list(path.glob('.harbor-write-*')), 'No temporary credential files may remain'
                 print('PASS: HTTPS, identity probe, CSRF, login, rotation, old-password rejection, session revocation.' + (' Command execution checked.' if os.name != 'nt' else ' Linux command execution skipped on Windows.'))
             finally:
