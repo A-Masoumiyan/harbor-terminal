@@ -10,9 +10,10 @@ async function task(work) {
   if (busy) return;
   busy = true;
   actionButtons.forEach(id => $(id).disabled = true);
+  ['upload-url', 'directory', 'domain', 'owner'].forEach(id => $(id).disabled = true);
   $('rotate-form').querySelector('button').disabled = true;
   try { await work(); } catch (error) { status(error.message || 'عملیات انجام نشد.', true); }
-  finally { busy = false; actionButtons.forEach(id => $(id).disabled = false); $('rotate-form').querySelector('button').disabled = false; }
+  finally { busy = false; actionButtons.forEach(id => $(id).disabled = false); ['upload-url', 'directory', 'domain', 'owner'].forEach(id => $(id).disabled = false); $('rotate-form').querySelector('button').disabled = false; }
 }
 async function grant(url) {
   if (!await api.permissions.request({origins: [permissionPattern(url)]})) throw new Error('اجازهٔ دسترسی به این دامنه داده نشد.');
