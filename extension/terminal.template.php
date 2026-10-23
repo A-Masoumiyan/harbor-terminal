@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-// Harbor Terminal 1.2.0 | PHP 8.1+ | Deploy only on your own hosting account.
+// Harbor Terminal 1.2.1 | PHP 8.1+ | Deploy only on your own hosting account.
 const INSTANCE_ID = '__INSTANCE_ID__';
 // HARBOR_AUTH_BEGIN
 const AUTH_SALT = '__AUTH_SALT__';
@@ -51,6 +51,11 @@ function commandsAvailable(): bool {
 function privateRoot(): ?string {
     static $done=false,$root=null;
     if($done)return $root; $done=true;
+    // PHP 8 removes disabled functions entirely: @ cannot suppress calling one.
+    // Optional server metadata must not take down identity probes or login.
+    foreach(['getmyuid','fileowner','chmod','flock','ftruncate','fflush','sys_get_temp_dir'] as $function){
+        if(!is_callable($function))return null;
+    }
     $sessionPath=explode(';',session_save_path());
     foreach([sys_get_temp_dir(),end($sessionPath)] as $base){
         if(!is_string($base)||$base===''||!@is_dir($base)||!@is_writable($base))continue;
@@ -128,7 +133,7 @@ function auditCommand(string $command,string $cwd,int $code,float $duration):voi
 // A public identity probe contains no password, hash, account path or session information.
 $api = isset($_GET['api']) && is_string($_GET['api']) ? $_GET['api'] : '';
 if ($api === 'info' && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    jsonReply(200, ['product' => 'harbor-terminal', 'id' => INSTANCE_ID, 'version' => '1.2.0', 'minimum_password_characters' => 4, 'commands' => commandsAvailable(), 'php'=>PHP_VERSION, 'features'=>['stream'=>commandsAvailable(),'files'=>true,'privateStorage'=>privateRoot()!==null,'sessions'=>privateRoot()!==null,'sharedRateLimit'=>privateRoot()!==null]]);
+    jsonReply(200, ['product' => 'harbor-terminal', 'id' => INSTANCE_ID, 'version' => '1.2.1', 'minimum_password_characters' => 4, 'commands' => commandsAvailable(), 'php'=>PHP_VERSION, 'features'=>['stream'=>commandsAvailable(),'files'=>true,'privateStorage'=>privateRoot()!==null,'sessions'=>privateRoot()!==null,'sharedRateLimit'=>privateRoot()!==null]]);
 }
 // Credentials are sent only in the HTTPS POST body, never in a URL or a cookie.
 if ($api === 'rotate') {
@@ -345,7 +350,7 @@ if (!empty($_SESSION['authenticated'])) { $_SESSION['last'] = time(); sessionChe
 .editor .file-list{max-height:310px;overflow:auto;margin:14px 0}.file-row,.session-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:8px 0;border-bottom:1px solid var(--line)}.file-row a,.file-row button{min-width:0;overflow-wrap:anywhere;text-align:left;font:12px/1.8 Consolas,monospace;color:var(--blue);background:transparent;border:0;text-decoration:none}.file-row small{white-space:nowrap;font:10px monospace}.files-path{font:12px/1.8 monospace;margin-bottom:12px;overflow-wrap:anywhere}.upload-label{border:1px dashed #536977;border-radius:9px;padding:12px;margin:14px 0}.upload-label input{margin-top:10px}.session-row{font-size:11px;flex-wrap:wrap}.session-row button{font-size:10px}.toast{position:fixed;top:18px;right:18px;bottom:auto;left:auto;width:min(340px,calc(100vw - 36px));padding:10px 12px;display:flex;align-items:flex-start;gap:12px;font-size:12px;line-height:1.8;box-shadow:0 10px 30px #0006;border-radius:10px;animation:toast-in .18s ease-out}.toast span{flex:1;overflow-wrap:anywhere}.toast.error{background:#352022;border-color:#925255;color:#ffcccc}.toast.warning{background:#352c1c;border-color:#8d7746;color:#ffe0a1}.toast-close{padding:0 5px;color:inherit;background:transparent;border:0;font:20px monospace;line-height:1.4}.toast-close:hover{background:#ffffff12;border-color:transparent}@keyframes toast-in{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}@media(prefers-reduced-motion:reduce){.toast{animation:none}}#history{max-height:320px;overflow:auto}#history-search{margin-bottom:10px}#server-history{margin:10px 0;font-size:10px}.commandwrap{z-index:2}.panel:has(.commandwrap){overflow:visible}.panel:has(.commandwrap) .panelhead{border-radius:14px 14px 0 0}
 </style></head>
 <body data-instance="<?=h(INSTANCE_ID)?>" data-message="<?=h($message)?>" data-message-kind="<?= $message !== '' && (!isset($code)||$code!==0) ? 'error' : 'success' ?>"><div class="shell">
-<header class="top"><div class="brand"><div class="logo" aria-hidden="true">›_</div><div><h1 dir="ltr">HARBOR TERMINAL</h1><p>کنسول شخصی هاست · نسخهٔ ۱٫۲٫۰</p></div></div><div class="row"><span class="pill"><span class="dot"></span>HTTPS / ENCRYPTED</span><?php if (!empty($_SESSION['authenticated'])): ?><form method="post"><input type="hidden" name="csrf" value="<?=h($_SESSION['csrf'])?>"><input type="hidden" name="action" value="logout"><button>خروج از نشست ↗</button></form><?php endif; ?></div></header>
+<header class="top"><div class="brand"><div class="logo" aria-hidden="true">›_</div><div><h1 dir="ltr">HARBOR TERMINAL</h1><p>کنسول شخصی هاست · نسخهٔ ۱٫۲٫۱</p></div></div><div class="row"><span class="pill"><span class="dot"></span>HTTPS / ENCRYPTED</span><?php if (!empty($_SESSION['authenticated'])): ?><form method="post"><input type="hidden" name="csrf" value="<?=h($_SESSION['csrf'])?>"><input type="hidden" name="action" value="logout"><button>خروج از نشست ↗</button></form><?php endif; ?></div></header>
 <?php if (empty($_SESSION['authenticated'])): ?>
 <main class="panel login"><p class="eyebrow">YOUR HOST. YOUR CONSOLE.</p><h2>به کنسولت وصل شو.</h2><p>رمز ترمینال را وارد کن تا فرمان‌ها با دسترسی حساب هاستت اجرا شوند.</p>
 <?php if ($message !== ''): ?><div class="message" role="status"><?=h($message)?></div><?php endif; ?>

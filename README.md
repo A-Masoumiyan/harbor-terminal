@@ -1,16 +1,22 @@
-# Harbor Terminal 1.2.0
+# Harbor Terminal 1.2.1
 
 کنسول شخصی هاست cPanel، بدون نیاز به SSH؛ افزونه برای Edge، Chrome و Firefox، و یک فایل PHP برای هاست.
 
 ## نصب سریع روی Edge ویندوز
 
-1. از [آخرین نسخه](https://github.com/A-Masoumiyan/harbor-terminal/releases/latest) فایل **harbor-terminal-chrome-edge-1.2.0.zip** را دریافت و Extract All کنید.
+1. از [آخرین نسخه](https://github.com/A-Masoumiyan/harbor-terminal/releases/latest) فایل **harbor-terminal-chrome-edge-1.2.1.zip** را دریافت و Extract All کنید.
 2. در نوار آدرس Edge بنویسید `edge://extensions`، حالت Developer mode را روشن و Load unpacked را بزنید.
 3. پوشه‌ای را انتخاب کنید که **manifest.json** داخل آن است. آیکون Harbor Terminal را از منوی افزونه‌ها روی نوار ابزار نمایش دهید.
 
 راهنمای `INSTALL-FA.txt` داخل بسته هم همین مراحل را توضیح می‌دهد. نسخهٔ آماده با ZIP سورس فرق دارد، اما از این نسخه پوشهٔ اصلی سورس هم برای Edge قابل بارگیری است.
 
 برای Chrome مراحل یکسان و آدرس `chrome://extensions` است. بستهٔ Firefox مخصوص نصب موقت از `about:debugging#/runtime/this-firefox` است؛ نصب دائمی هنوز به امضای Mozilla نیاز دارد. حداقل Chrome/Edge 120 و Firefox 140.
+
+## رفع خطای ۵۰۰ روی هاست‌های محدود
+
+نسخهٔ ۱٫۲٫۱ پیش از استفاده از توابع ذخیرهٔ خصوصی، در دسترس بودن آن‌ها را بررسی می‌کند. اگر getmyuid یا توابع لازم توسط هاست بسته باشند، ورود، بررسی نصب و تغییر رمز ادامه می‌یابند؛ مدیریت نشست‌ها، تاریخچهٔ سمت هاست و محدودیت تلاش مشترک غیرفعال می‌شوند. محدودیت ورود در نشست همان مرورگر برقرار می‌ماند. برای اعمال اصلاح باید فایل PHP ترمینال فعلی هم ارتقا پیدا کند؛ به‌روزرسانی افزونه به‌تنهایی فایل هاست را عوض نمی‌کند.
+
+پیام‌های بررسی اتصال اکنون کد HTTP و تفاوت فایل مفقود، خطای اجرای PHP، مسدودشدن درخواست، صفحهٔ HTML و پاسخ نامعتبر را مشخص می‌کنند. متن خام پاسخ هاست در پیام خطا نمایش داده نمی‌شود.
 
 ## پنل همیشه در دسترس
 
@@ -75,11 +81,12 @@ Node.js 22+، Python 3 و PHP 8.1+ لازم است. وابستگی runtime بی�
 ```text
 node --test tests/*.test.js
 python tests/php_integration.py
+python tests/php_restricted_host.py
 python tools/build.py
 ```
 
 بسته‌ها در `dist/` ساخته می‌شوند؛ manifest و ورودی‌های هر بسته بررسی می‌شوند. آزمون‌های HTTP، HTTPS/CSRF، ورود و رمز چهارکاراکتری، فایل‌ها، آپلود/دانلود، نشست‌ها و محدودیت تلاش را پوشش می‌دهند. در لینوکس، خروجی UTF-8، اجرای زنده و درخواست توقف هم‌زمان هم آزموده می‌شوند. آزمون‌های JavaScript مهاجرت چندهاستی، شروع واقعی ماژول تنظیمات، کلیک نوار ابزار، تاریخچه، کلیدها و آماده‌بودن اجزای رابط را بررسی می‌کنند.
 
-با tag مثل `v1.2.0`، workflow پس از آزمون‌ها ZIPها و SHA256SUMS را در Releases قرار می‌دهد. برای نسخهٔ بعد، شماره در package.json، manifestها و قالب PHP باید هماهنگ باشد. آزمون cPanel واقعی و تمام نسخه‌های مرورگر از این آزمون‌ها نتیجه نمی‌شود؛ سازگاری محیط میزبانی باید بررسی شود.
+با tag مثل `v1.2.1`، workflow پس از آزمون‌ها ZIPها و SHA256SUMS را در Releases قرار می‌دهد. برای نسخهٔ بعد، شماره در package.json، manifestها و قالب PHP باید هماهنگ باشد. آزمون cPanel واقعی و تمام نسخه‌های مرورگر از این آزمون‌ها نتیجه نمی‌شود؛ سازگاری محیط میزبانی باید بررسی شود.
 
 منابع رسمی: [بارگیری افزونه در Edge](https://learn.microsoft.com/en-us/microsoft-edge/extensions/getting-started/extension-sideloading)، [آپلود cPanel](https://api.docs.cpanel.net/guides/quickstart-development-guide/tutorial-use-uapis-fileman-upload-files-function-in-custom-code)، [محدودیت flush در PHP](https://www.php.net/manual/en/function.flush.php)، [توزیع Chrome](https://developer.chrome.com/docs/extensions/how-to/distribute)، [توزیع Firefox](https://extensionworkshop.com/documentation/publish/self-distribution/).

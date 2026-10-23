@@ -1,6 +1,7 @@
 import {requestCpanel, withTimeout} from './transport.js';
 import {upgradeSource, restoreSource} from './upgrade.js';
 import {loadConnections, saveConnection, selectConnection, removeConnection} from './connections.js';
+import {probeHost,hostJSON} from './host-response.js';
 import {parseCpanel, permissionPattern, domainChoices, terminalURL, normalizePath,
   randomHex, generatePassword, renderTerminal, newerVersion, REPOSITORY, RELEASES, httpsURL, passwordLengthError} from './core.js';
 const api = globalThis.browser ?? globalThis.chrome;
@@ -127,12 +128,7 @@ $('apply-upgrade').addEventListener('click', () => task(async () => {
   await displayProfile(); clearUpgrade(); status('ترمینال فعلی ارتقا پیدا کرد. صفحهٔ ترمینال را تازه‌سازی کنید؛ آدرس و رمز فعلی حفظ شدند.');
 }));
 async function info(profile) {
-  const url = httpsURL(profile.url); url.searchParams.set('api', 'info');
-  const response = await fetch(url.href, {cache: 'no-store', credentials: 'omit', redirect: 'error', signal: AbortSignal.timeout(15000)});
-  if (!response.ok || !(response.headers.get('content-type') || '').includes('application/json')) throw new Error('فایل نصب‌شده پاسخ معتبر نداد. HTTPS، نسخهٔ PHP و مسیر را بررسی کنید.');
-  const data = await response.json();
-  if (data.id !== profile.id || data.product !== 'harbor-terminal') throw new Error('هویت فایل با نصب این افزونه مطابقت ندارد.');
-  return data;
+  return probeHost(profile);
 }
 $('verify').addEventListener('click', () => task(async () => {
   const profile = currentProfile; if (!profile) return;
@@ -168,7 +164,7 @@ $('rotate-form').addEventListener('submit', event => {
         body: JSON.stringify({id: profile.id, current_password: oldPassword, new_password: newPassword}),
         credentials: 'omit', redirect: 'error', cache: 'no-store', signal: AbortSignal.timeout(30000)});
     } catch { throw new Error('ارتباط قطع شد؛ وضعیت تغییر رمز نامشخص است. ابتدا ورود با رمز جدید را امتحان کنید و سپس رمز قبلی.'); }
-    const data = await response.json();
+    const data = await hostJSON(response,'rotate');
     if (!response.ok || !data.ok) throw new Error(data.error || 'رمز تغییر نکرد.');
     $('rotate-form').reset(); status('رمز روی هاست تغییر کرد. همهٔ ورودهای قبلی باطل شدند.');
   });

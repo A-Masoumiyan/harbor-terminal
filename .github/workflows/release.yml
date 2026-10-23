@@ -23,6 +23,7 @@ jobs:
       - run: node --test tests/*.test.js
       - run: php -l extension/terminal.template.php
       - run: python tests/php_integration.py
+      - run: python tests/php_restricted_host.py
       - run: python tools/build.py
       - uses: actions/upload-artifact@v4
         with:
