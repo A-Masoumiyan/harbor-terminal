@@ -1,0 +1,9 @@
+dist/
+node_modules/
+.env
+*.pem
+*.key
+.web-ext-artifacts/
+web-ext-artifacts/
+work/
+__pycache__/

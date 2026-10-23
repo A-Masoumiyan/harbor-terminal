@@ -1,2 +1,69 @@
-# harbor-terminal
-Browser companion for password-protected PHP terminal deployment through your own cPanel session. Chrome, Edge and Firefox.
+# Harbor Terminal
+
+افزونهٔ مرورگر برای نصب و بازکردن کنسول PHP با رمز روی **هاست cPanel خودتان**؛ بدون نیاز به SSH.
+
+## دریافت و نصب در ویندوز
+
+بسته‌ها در [GitHub Releases](https://github.com/A-Masoumiyan/harbor-terminal/releases) منتشر می‌شوند.
+
+- **Chrome:** فایل `harbor-terminal-chrome-edge-1.0.0.zip` را استخراج کنید. در `chrome://extensions` حالت Developer mode را روشن کنید، Load unpacked را بزنید و پوشه‌ای که `manifest.json` در آن است انتخاب کنید.
+- **Edge:** همان بسته را استخراج کنید. در `edge://extensions` حالت Developer mode، سپس Load unpacked را انتخاب کنید.
+- **Firefox:** بستهٔ `harbor-terminal-firefox-1.0.0.zip` فعلاً **امضانشده و مخصوص آزمون** است. آن را استخراج کنید؛ در `about:debugging#/runtime/this-firefox` گزینهٔ Load Temporary Add-on و سپس `manifest.json` را انتخاب کنید. این نصب پس از بستن Firefox از بین می‌رود. نصب دائمی به امضای Mozilla نیاز دارد؛ بستهٔ امضاشده هنوز منتشر نشده است.
+
+حداقل مرورگر: Chrome/Edge 120؛ Firefox 140. روی ویندوز نیازی به برنامهٔ جانبی نیست. هاست باید لینوکس، PHP 8.1+، HTTPS معتبر، سشن فعال، و اجازهٔ `proc_open` و توابع وابسته داشته باشد.
+
+## نصب ترمینال
+
+1. در همان مرورگر وارد cPanel شوید. از File Manager پوشهٔ وب موردنظر را باز کنید و Upload را بزنید؛ تب را باز نگه دارید.
+2. در تنظیمات افزونه، آدرس کامل صفحهٔ Upload را وارد کنید. آن را در گیت‌هاب، گفت‌وگوی عمومی یا گزارش خطا منتشر نکنید، چون توکن نشست دارد.
+3. «تشخیص دامنه و مسیر» را بزنید و دسترسی به همان میزبان را بدهید. افزونه از `DomainInfo/domains_data`، دامنه‌ها و document root را می‌خواند؛ دامنهٔ پنل را به‌جای دامنهٔ سایت حدس نمی‌زند.
+4. دامنه و مسیر را بررسی کنید، مالکیت هاست را تأیید و «ساخت رمز و نصب ترمینال» را بزنید. نام فایل یکتا است و بازنویسی فایل‌های موجود درخواست نمی‌شود.
+5. رمز نمایش‌داده‌شده را همان لحظه در مدیر رمز ذخیره کنید؛ افزونه آن را دائمی نگه نمی‌دارد. «بررسی نصب» را بزنید و دسترسی به دامنهٔ سایت را بدهید.
+6. از این پس کلیک روی آیکون افزونه، ترمینال را باز می‌کند. رمز را در صفحهٔ ترمینال وارد کنید. برای تنظیمات، روی آیکون راست‌کلیک و Options / گزینه‌ها را انتخاب کنید.
+
+آزمون اولیه: `pwd && whoami && ls -la`
+
+هر فرمان در یک شِل تازه اجرا می‌شود. مسیر پوشه را در فرم تغییر دهید؛ `cd` بین درخواست‌ها حفظ نمی‌شود. برنامه‌های تعاملی مثل `nano` و اجرای سرویس‌های طولانی پشتیبانی نمی‌شوند. حد خروجی ۲۵۶ کیلوبایت است و پس از حدود ۱۰ ثانیه تلاش برای توقف شِل انجام می‌شود؛ توقف همهٔ پردازش‌های فرزند تضمین نمی‌شود. دسترسی همان کاربر PHP است؛ دسترسی روت ایجاد نمی‌شود و محدودیت‌های هاست دور زده نمی‌شوند.
+
+## تغییر رمز
+
+در تنظیمات، رمز فعلی، رمز جدید و تکرار آن را وارد و ثبت کنید. افزونه ابتدا شناسهٔ نصب را بررسی می‌کند و سپس رمزها را فقط به همان دامنه از طریق HTTPS می‌فرستد. PHP فایل خودش را با نوشتن در فایل موقت و جایگزینی اتمی به‌روز می‌کند؛ ورودهای قبلی باطل می‌شوند. دسترسی نوشتن به فایل و پوشهٔ نصب لازم است. رمز جدید حداقل ۱۶ نویسه و حداکثر ۲۵۶ بایت است.
+
+اگر پاسخ تغییر رمز به علت قطع شبکه دریافت نشد، وضعیت نامشخص است؛ ابتدا رمز جدید و سپس قبلی را امتحان کنید. اگر رمز را فراموش کردید، فایل PHP را از File Manager حذف و یک نصب تازه انجام دهید. حذف اتصال از افزونه یا حذف خود افزونه، فایل هاست را پاک نمی‌کند.
+
+## به‌روزرسانی
+
+دکمهٔ «بررسی نسخهٔ جدید» در تنظیمات، آخرین GitHub Release را بررسی و صفحهٔ دریافت را باز می‌کند. افزونه کد جدیدی را از راه دور اجرا نمی‌کند و محدودیت نصب مرورگر را دور نمی‌زند.
+
+- نسخهٔ دستی Chrome/Edge: پس از دریافت، محتوای همان پوشهٔ نصب قبلی را با نسخهٔ جدید جایگزین کنید و در صفحهٔ افزونه‌ها Reload را بزنید. پوشه را عوض نکنید تا شناسه و تنظیمات نسخهٔ unpacked حفظ شوند.
+- به‌روزرسانی خودکار عادی Chrome و Edge نیازمند انتشار و تأیید در فروشگاه مربوطه است؛ این پروژه هنوز در فروشگاه‌ها منتشر نشده است.
+- نسخهٔ دائمی Firefox باید توسط Mozilla امضا شود. بعد از انتشار در AMO، به‌روزرسانی از خود Firefox انجام می‌شود. برای توزیع مستقل می‌توان `browser_specific_settings.gecko.update_url` را به فهرست نسخه‌های امضاشده وصل کرد. در بستهٔ فعلی چنین وعده‌ای داده نشده است.
+- به‌روزرسانی افزونه، فایل PHP قبلاً نصب‌شده روی هاست را خودکار عوض نمی‌کند. برای ارتقای ترمینال، نسخهٔ تازه نصب و فایل قدیمی را از File Manager حذف کنید.
+
+## ساخت، آزمون و انتشار نسخه‌های بعدی
+
+ابزارهای لازم برای توسعه: Node.js 22+، Python 3 و PHP 8.1+.
+
+```text
+npm test
+python tests/php_integration.py
+python tools/build.py
+```
+
+بسته‌های خروجی در `dist/` قرار می‌گیرند. فایل‌های نمونهٔ آزمون بیرون از بسته ساخته می‌شوند و هیچ رمز ثابتی در سورس وجود ندارد. فایل `terminal.template.php` به‌تنهایی قابل ورود نیست؛ هنگام نصب، salt و verifier تصادفی جای‌گذاری می‌شوند.
+
+برای انتشار، نسخه را در `package.json`، هر دو manifest و برچسب نسخهٔ قالب PHP یکسان بالا ببرید، آزمون‌ها را اجرا و یک tag با شکل `v1.0.1` push کنید. workflow انتشار، ZIPها و `SHA256SUMS.txt` را در GitHub Releases می‌گذارد. خروجی Firefox همچنان امضانشده است مگر فرایند امضای AMO را جدا انجام دهید.
+
+## محدودیت‌ها و حریم خصوصی
+
+فقط cPanel UAPI و نشست استاندارد `cpsess` پشتیبانی می‌شود؛ پنل سفارشی، API مسدود، خروج از نشست یا گواهی نامعتبر باعث توقف می‌شود. اگر چند دامنه به یک پوشه وصل باشند، کاربر دامنه را انتخاب می‌کند. فایل جدید جایگزین فایل ترمینال قدیمی شما نمی‌شود.
+
+اتصال به HTTPS مستقیماً از وب‌سرور بررسی می‌شود و به هدرهای قابل جعل اعتماد نمی‌شود. در میزبانی پشت پروکسی، پشتیبانی باید متغیر HTTPS را درست تنظیم کند. در صورت نیاز، `ALLOWED_IP` بالای PHP نصب‌شده را به IP ثابت خود محدود کنید.
+
+[جزئیات داده‌ها و دسترسی‌ها](PRIVACY.md). هیچ تله‌متری وجود ندارد. استفاده از رمز تصادفی و نگه‌داشتن فایل فقط در زمان نیاز توصیه می‌شود؛ این ابزار یک کنسول مدیریتی با دسترسی کاربر هاست است.
+
+## Validation status
+
+Automated tests cover cPanel URL/path mapping, password generation and PHP verifier compatibility, mocked UAPI behavior, HTTPS enforcement, login/CSRF, password rotation, and session revocation. Production cPanel deployment and full browser installation on all three browsers require environment testing; they are not claimed as verified by these tests.
+
+Official references: [cPanel upload API](https://api.docs.cpanel.net/guides/quickstart-development-guide/tutorial-use-uapis-fileman-upload-files-function-in-custom-code), [domain metadata](https://api.docs.cpanel.net/specifications/cpanel.openapi/domain-information), [Chrome distribution](https://developer.chrome.com/docs/extensions/how-to/distribute), [Edge hosting](https://learn.microsoft.com/en-us/microsoft-edge/extensions/publish/hosting-and-updating), [Firefox self-distribution](https://extensionworkshop.com/documentation/publish/self-distribution/).
