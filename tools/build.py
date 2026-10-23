@@ -42,6 +42,11 @@ def build():
         for size in [16, 32, 48, 128]:
             (target / 'icons' / f'{size}.png').write_bytes(icon(size))
         (target / 'manifest.json').write_bytes((ROOT / f'manifest.{manifest}.json').read_bytes())
+        manifest_data=json.loads((target/'manifest.json').read_text())
+        assert manifest_data['version']==version, 'Manifest and package versions differ'
+        required=[manifest_data['options_ui']['page'],'terminal.template.php']
+        required += [manifest_data['background']['service_worker']] if 'service_worker' in manifest_data['background'] else manifest_data['background']['scripts']
+        assert all((target/name).is_file() for name in required), 'Extension entry point is missing'
         name = f'harbor-terminal-{browser}-{version}.zip'
         with zipfile.ZipFile(dist / name, 'w', zipfile.ZIP_DEFLATED) as archive:
             for file in sorted(target.rglob('*')):

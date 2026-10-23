@@ -5,6 +5,7 @@ export async function cpanelRequest(expected, operation, params, upload) {
     return {error: 'نشست تب عوض شده است؛ نشانی تازهٔ Upload را وارد کنید.'};
   }
   const endpoint = expected.origin + expected.session + '/execute/' + operation;
+  let stage='ارتباط با پنل';
   try {
     let response;
     const controller = new AbortController();
@@ -19,10 +20,12 @@ export async function cpanelRequest(expected, operation, params, upload) {
       } else {
         response = await fetch(endpoint + '?' + new URLSearchParams(params), {credentials: 'same-origin', signal: controller.signal, redirect: 'error'});
       }
-      if (!response.ok) throw new Error('HTTP ' + response.status);
-      const json = await response.json();
+      if (!response.ok) return {error:`cPanel / HTTP ${response.status}: ${[401,403].includes(response.status)?'نشست یا اجازهٔ دسترسی معتبر نیست؛ دوباره وارد cPanel شوید و آدرس تازهٔ Upload را وارد کنید.':'پنل پاسخ موفق نداد؛ در تب اصلی cPanel اتصال را بررسی کنید.'}`};
+      stage='خواندن پاسخ API';
+      let json;
+      try{json=await response.json();}catch{return {error:'cPanel به‌جای پاسخ API، صفحهٔ وب برگرداند؛ معمولاً نشست منقضی شده است. دوباره وارد شوید و آدرس تازهٔ Upload را بگیرید.'};}
       const result = json.result ?? json;
-      if (Number(result.status) !== 1) throw new Error('cPanel API rejected the request');
+      if (Number(result.status) !== 1) return {error:`cPanel درخواست ${operation} را نپذیرفت. وجود فایل یا پوشه و دسترسی این قابلیت را در File Manager بررسی کنید؛ برای نصب تازه می‌توانید از نصب دستی استفاده کنید.`};
       // Upload responses sometimes contain per-file failures even with top-level success.
       if (upload) {
         const files = result.data?.uploads;
@@ -31,5 +34,5 @@ export async function cpanelRequest(expected, operation, params, upload) {
       }
       return {data: upload ? true : result.data};
     } finally { clearTimeout(timer); }
-  } catch { return {error: 'پاسخ معتبر از cPanel دریافت نشد. ورود، اجازهٔ API و نتیجهٔ آپلود را در File Manager بررسی کنید؛ عملیات را کورکورانه تکرار نکنید.'}; }
+  } catch { return {error: `cPanel / ${stage}: پاسخ معتبر دریافت نشد. ورود و اتصال پنل را بررسی کنید. اگر مرحله آپلود بود، پیش از تکرار وجود فایل را در File Manager بررسی کنید.`}; }
 }

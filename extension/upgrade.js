@@ -12,3 +12,11 @@ export function upgradeSource(template, source, id) {
   if (!template.includes("const ALLOWED_IP = '';")) throw new Error('تنظیم IP قالب شناخته نشد.');
   return template.replace("const ALLOWED_IP = '';", `const ALLOWED_IP = '${ip[1]}';`);
 }
+export function restoreSource(backup, current, id) {
+  if (typeof backup !== 'string' || backup.length > 1000000 || !backup.includes('// Harbor Terminal ') || !backup.includes(`const INSTANCE_ID = '${id}';`)) throw new Error('پشتیبان متعلق به همین ترمینال نیست.');
+  const marker=/\/\/ HARBOR_AUTH_BEGIN\r?\nconst AUTH_SALT = '[a-f0-9]{32}';\r?\nconst AUTH_VERIFIER = '[a-f0-9]{64}';\r?\n\/\/ HARBOR_AUTH_END/;
+  const ip=/^const ALLOWED_IP = '[0-9a-fA-F:.]*';[^\r\n]*$/m;
+  const auth=current.match(marker), restriction=current.match(ip);
+  if(!auth||!restriction||!marker.test(backup)||!ip.test(backup)||!backup.includes('const AUTH_ITERATIONS = 600000;'))throw new Error('قالب پشتیبان یا اطلاعات ورود قابل تشخیص نیست.');
+  return backup.replace(marker,auth[0]).replace(ip,restriction[0]);
+}

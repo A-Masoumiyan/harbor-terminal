@@ -1,0 +1,32 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync,existsSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+const base=new URL('../',import.meta.url);
+function fakeStorage(){const values={};return {get:async keys=>typeof keys==='string'?{[keys]:values[keys]}:Object.fromEntries(keys.map(key=>[key,values[key]])),set:async data=>Object.assign(values,data),remove:async keys=>{for(const key of Array.isArray(keys)?keys:[keys])delete values[key];}};}
+class Element {constructor(id=''){this.id=id;this.value='';this.hidden=false;this.disabled=false;this.handlers={};this.children=[];this.files=[];this.style={};this.classList={toggle(){}};}addEventListener(name,callback){this.handlers[name]=callback;}replaceChildren(...children){this.children=children;}append(child){this.children.push(child);}querySelector(){return new Element();}removeAttribute(){} }
+test('actual options module starts without missing elements or browser API errors',async()=>{
+  const html=readFileSync(new URL('extension/options.html',base),'utf8');const elements=new Map([...html.matchAll(/\bid="([\w-]+)"/g)].map(m=>[m[1],new Element(m[1])]));
+  const previous={document:globalThis.document,browser:globalThis.browser,Option:globalThis.Option};
+  try{
+    globalThis.document={getElementById:id=>{assert.ok(elements.has(id),'Missing options control '+id);return elements.get(id);}};
+    globalThis.Option=class{constructor(text,value){this.text=text;this.value=value;}};
+    globalThis.browser={storage:{local:fakeStorage(),session:fakeStorage()},runtime:{getManifest:()=>({version:'1.1.0'}),getURL:path=>'chrome-extension://test/'+path}};
+    await import(new URL('extension/options.js?startup=1',base));
+    assert.equal(elements.get('version').textContent,'1.1.0');assert.equal(elements.get('connections').children[0].text,'هنوز اتصالی ثبت نشده است');
+    assert.ok(elements.get('connect-existing').handlers.click);assert.ok(elements.get('manual-generate').handlers.click);
+  }finally{Object.assign(globalThis,previous);}
+});
+test('toolbar opens setup and captures cPanel URL only in temporary session storage',async()=>{
+  const previous=globalThis.browser;let onClick,opened=0;const session=fakeStorage();
+  try{
+    globalThis.browser={storage:{local:fakeStorage(),session},action:{onClicked:{addListener:fn=>onClick=fn}},runtime:{openOptionsPage:async()=>opened++,onInstalled:{addListener(){}}},contextMenus:{onClicked:{addListener(){}}},tabs:{create:async()=>{throw new Error('No saved host expected');}}};
+    await import(new URL('extension/background.js?startup=1',base));await onClick({url:'https://example.test/'});assert.equal(opened,1);
+    const url='https://panel.example:2083/cpsess123/frontend/jupiter/filemanager/upload-ajax.html?dir=%2Fhome%2Fu%2Fpublic_html';await onClick({url});assert.equal(opened,2);assert.equal((await session.get('setupTabURL')).setupTabURL,url);
+  }finally{globalThis.browser=previous;}
+});
+test('GitHub source root is directly loadable in Edge',()=>{
+  const manifest=JSON.parse(readFileSync(new URL('manifest.json',base),'utf8'));assert.equal(manifest.manifest_version,3);
+  for(const path of [manifest.background.service_worker,manifest.options_ui.page])assert.ok(existsSync(fileURLToPath(new URL(path,base))));
+  assert.equal(manifest.version,JSON.parse(readFileSync(new URL('package.json',base),'utf8')).version);
+});
